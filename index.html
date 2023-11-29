@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novak Daniel Beadandó - OQC1QU</title>
+
+    <!-- Leaflet Css -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+
+    <!-- Leaflet Script -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+
+    <!-- Main Style -->
+    <link rel="stylesheet" href="main.css">
+
+
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+
+        // my own star Icon
+        var myIcon = L.icon({
+                iconUrl: 'images/star.png',
+                iconSize: [38, 38],
+                iconAnchor: [22, 94],
+                popupAnchor: [-3, -76],
+                shadowSize: [68, 95],
+                shadowAnchor: [22, 94]
+                });
+
+        // Polygon Style
+        var polygonStyle = {
+            "color": "red",
+            "weight": 5,
+            "opacity": 1
+        };
+
+        // OSM layers
+        var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        });
+
+        var osmHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        });
+
+       
+        // Markers Layer
+        var szechenyiFurdo = L.marker([47.51729, 19.08240], {icon: myIcon}).bindPopup("<b>Széchenyi Gyógyfürdő és  Uszoda</b></br>Megnyitva: 1913. június 16."),
+            fovarosiAllatkert = L.marker([47.51796, 19.07776], {icon: myIcon}).bindPopup("<b>Fővárosi Állatkert</b></br>Megnyitva: 1866. augusztus 9."),
+            hosokTere = L.marker([47.51391, 19.07775], {icon: myIcon}).bindPopup("<b>Hősök tere</b></br>1932-ben nevezték el „Hősök terének”"),
+            zeneHaza = L.marker([47.51211, 19.08370], {icon: myIcon}).bindPopup("<b>Magyar Zene Háza</b></br>Építés éve 2019–2021"),
+            milleniumHaza = L.marker([47.51116, 19.08807], {icon: myIcon}).bindPopup("<b>Millenium Háza</b></br>Megnyitva: 1885");
+
+        var varosligetLatnivalok = L.layerGroup([szechenyiFurdo, fovarosiAllatkert, hosokTere, zeneHaza, milleniumHaza]);
+
+
+        // Image overlay Layer
+        var varosligetPastPic = L.imageOverlay("https://s.24.hu/app/uploads/2021/03/156768186_171535867940884_5112334105194343847_n.jpg", 
+            L.latLngBounds([[47.5130, 19.0940], [47.5183, 19.1028]]), {
+            opacity: 1,
+            alt: "Városliget 2016 tervezet",
+            interactive: false
+        });
+
+        var imageOverlays = L.layerGroup([varosligetPastPic]);
+
+
+        //GEO JSON Polygon
+        var varosligetPontok = [{
+            "type": "FeatureCollection",
+            "features": [
+                {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "coordinates": [
+                    [
+                        19.107839358258843,
+                        47.48637035804404
+                    ],
+                    [
+                        19.118660034929547,
+                        47.483342385155794
+                    ],
+                    [
+                        19.108327050728775,
+                        47.47223832458246
+                    ],
+                    [
+                        19.09896945146781,
+                        47.4756171739547
+                    ],
+                    [
+                        19.107839358258843,
+                        47.48637035804404
+                    ]
+                    ],
+                    "type": "LineString"
+                }
+                },
+                {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "coordinates": [
+                    [
+                        19.07326923775966,
+                        47.517975081812295
+                    ],
+                    [
+                        19.082877036385497,
+                        47.522151781099666
+                    ],
+                    [
+                        19.095131294514204,
+                        47.51397290918081
+                    ],
+                    [
+                        19.085696091072634,
+                        47.507114107526206
+                    ],
+                    [
+                        19.073240471895048,
+                        47.517975081812295
+                    ]
+                    ],
+                    "type": "LineString"
+                }
+                }
+            ]
+            }];
+
+        var varosligetPoligon = L.geoJSON(varosligetPontok, {
+            style: polygonStyle
+        });
+
+        var polygonLayers = L.layerGroup([varosligetPoligon]);
+
+
+        // Sum of layers
+        var baseMaps = {
+            "OpenStreetMap": osm,
+            "<span style='color: red'>OpenStreetMap.HOT</span>": osmHOT,
+        };
+
+        var overLays = {
+            "<span style='color: orange'>Markers</span>": varosligetLatnivalok,
+            "<span style='color: red'>Polygons</span>": polygonLayers,
+            "<span style='color: red'>Images</span>": imageOverlays,
+
+        };
+
+        // Map generate
+        var map = L.map('map', {
+            center: [47.5145, 19.0874],
+            zoom: 16,
+            layers: [osm, varosligetLatnivalok, imageOverlays, polygonLayers]
+        }); 
+        
+        // Layer Controller
+        var layerControl = L.control.layers(baseMaps, overLays).addTo(map);
+
+    </script>
+</body>
+</html>
